@@ -1,0 +1,26 @@
+.top-links {
+    width: 100%;
+    margin: 50px 0 0;
+    padding: 0;
+    list-style-type: none;
+    display: flex;
+}
+
+.top-links__li {
+    width: 50%;
+    text-align: center;
+}
+
+.top-links__link {
+    width: 100%;
+    display: block;
+    padding: 15px 0;
+    text-transform: uppercase;
+    background: #00BCD5;
+    text-decoration: none;
+    color: #fff;
+}
+
+.top-links__link.active {
+    border-bottom: 2px solid red;
+}

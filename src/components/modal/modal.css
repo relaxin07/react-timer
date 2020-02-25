@@ -1,0 +1,47 @@
+.wrap-modal {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(25, 22, 22, 0.7);
+    z-index: 9999;
+}
+
+.modal {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    padding: 30px 20px 20px 20px;
+    background: #fff;
+    width: 600px;
+    text-align: left;
+}
+
+.modal__header {
+    color: #C03060;
+    font-size: 26px;
+
+}
+
+.modal__text {
+    font-size: 16px;
+    margin-top: 15px;
+
+}
+
+.wrap-modal-btn {
+    text-align: right;
+    margin-top: 40px;
+}
+
+.modal-btn {
+    background: transparent;
+    text-transform: uppercase;
+    color: #10C0D7;
+    font-size: 20px;
+    outline: none;
+    border: none;
+    cursor: pointer;
+}
