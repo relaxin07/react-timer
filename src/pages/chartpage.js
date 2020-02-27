@@ -6,5 +6,4 @@ const chartPage = () => {
     )
 }
 
-
 export default chartPage;
