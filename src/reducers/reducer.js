@@ -6,12 +6,15 @@ const initialState = {
 
 const reducer = (state = initialState, action) => {
     let {tasks, statusModal, taskItem} = state;
-    const copyTasks = [...tasks];
 
     switch (action.type) {
+        case "GENERATE_TASKS":
+           tasks = action.payload;
+           return {...state,tasks};
+
         case "GET_TASK" :
 
-            const filterTask = copyTasks.filter((item) => {
+            const filterTask = tasks.filter((item) => {
                 return item.taskName === action.payload;
             });
             taskItem = filterTask[0];
@@ -22,19 +25,19 @@ const reducer = (state = initialState, action) => {
         case "DELETE_ITEM":
 
             const itemName = action.payload;
-            const ind = copyTasks.findIndex((item) => {
+            const ind = tasks.findIndex((item) => {
                 return item.taskName === itemName;
             });
 
-            const newCopyTasks = [...copyTasks.slice(0, ind), ...copyTasks.slice(ind + 1)];
-            tasks = [...newCopyTasks];
+            const copyTasks = [...tasks.slice(0, ind), ...tasks.slice(ind + 1)];
+            tasks = [...copyTasks];
 
             return {...state, tasks};
 
         case "ADD_ITEM":
 
-            const {taskName, timeStart, timeEnd, timeSpend} = action;
-            const addTask = [...tasks, {taskName, timeStart, timeEnd, timeSpend}];
+            const {taskId,taskName, timeStart, timeEnd, timeSpend} = action;
+            const addTask = [...tasks, {taskId,taskName, timeStart, timeEnd, timeSpend}];
             tasks = [...addTask];
 
             return {...state, tasks};
