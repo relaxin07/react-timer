@@ -3,6 +3,7 @@ import './timer.css';
 import Button from "@material-ui/core/Button";
 import {makeStyles} from '@material-ui/core/styles';
 
+
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import * as actions from "../../actions/actions";
@@ -22,6 +23,7 @@ class Timer extends React.Component {
             h: '00',
             taskText: '',
             modalStatus: false,
+            taskId : 1 ,
         }
     }
 
@@ -34,7 +36,7 @@ class Timer extends React.Component {
     );
 
     displayNone = () => {
-        const {hidden, hours} = this.state;
+        const {hidden} = this.state;
         this.setState({hidden: !hidden});
     };
 
@@ -82,7 +84,7 @@ class Timer extends React.Component {
      }*/
 
     stopTimer = (event) => {
-        const {sec, min, h, taskText} = this.state;
+        const {sec, min, h, taskText,taskId} = this.state;
         const {addItem, showModal} = this.props;
 
         if (taskText.length === 0) {
@@ -96,14 +98,16 @@ class Timer extends React.Component {
 
         let timeEnd = new Date();
 
-        addItem(taskText, this.timeStart.toLocaleTimeString(), timeEnd.toLocaleTimeString(), `${h}:${min}:${sec}`);
+        addItem(taskId,taskText, this.timeStart.toLocaleTimeString(), timeEnd.toLocaleTimeString(), `${h}:${min}:${sec}`);
 
         this.setState(() => ({
             min: '00',
             sec: '00',
             h: '00',
             taskText: '',
-            modalStatus: false
+            modalStatus: false,
+            taskId: taskId +1 ,
+
         }))
     };
 
