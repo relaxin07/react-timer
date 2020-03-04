@@ -4,14 +4,14 @@ import * as actions from '../../actions/actions';
 import {bindActionCreators} from 'redux'
 
 
-function randomInteger(min, max) {
+function createRandomNmbr(min, max) {
     let rand = min - 0.5 + Math.random() * (max - min + 1);
     return Math.round(rand);
 }
 
 function convertorTime(minutes) {
     let h = minutes / 60 ^ 0;
-    let m = minutes > 59 ? minutes - 60: minutes;
+    let m = minutes > 59 ? minutes - 60 : minutes;
     if(h < 10 ) h = '0' + h;
     if(m < 10 ) m = '0' + m;
     return `${h}:${m}:00`;
@@ -19,13 +19,13 @@ function convertorTime(minutes) {
 
 
 function createTask(action) {
-    let countNumber = randomInteger(10,15);
+    let countNumber = createRandomNmbr(10,15);
     let tasks = [];
     for(let i = 1; i<= countNumber ; i++){
         tasks.push({
             taskId : i,
             taskName: `Task ${i}`,
-            timeSpend : convertorTime(randomInteger(30,90)),
+            timeSpend : convertorTime(createRandomNmbr(30,90)),
         })
     }
     action(tasks);
