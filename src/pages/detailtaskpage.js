@@ -4,7 +4,7 @@ import TaskDetails from "../components/task-details";
 
 const TaskDetailPage = () => {
     return (
-        <div> <TaskDetails /></div>
+        <div><TaskDetails/></div>
     )
 }
 
