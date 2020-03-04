@@ -1,5 +1,7 @@
+const getTasks = JSON.parse(localStorage.getItem('tasks'));
+
 const initialState = {
-    tasks: [],
+    tasks: getTasks === null ? [] : getTasks,
     statusModal: false,
     taskItem: {},
 };
@@ -8,44 +10,46 @@ const reducer = (state = initialState, action) => {
     let {tasks, statusModal, taskItem} = state;
 
     switch (action.type) {
+
         case "GENERATE_TASKS":
-           tasks = action.payload;
-           return {...state,tasks};
+            localStorage.setItem('tasks', JSON.stringify(action.payload));
+            tasks = action.payload;
+            return {...state, tasks};
 
         case "GET_TASK" :
-
             const filterTask = tasks.filter((item) => {
                 return item.taskName === action.payload;
             });
+
             taskItem = filterTask[0];
 
             return {...state, taskItem};
 
 
-        case "DELETE_ITEM":
-
+        case "DELETE_TASK":
             const itemName = action.payload;
             const ind = tasks.findIndex((item) => {
                 return item.taskName === itemName;
             });
 
-            const copyTasks = [...tasks.slice(0, ind), ...tasks.slice(ind + 1)];
-            tasks = [...copyTasks];
-
+            tasks = [...tasks.slice(0, ind), ...tasks.slice(ind + 1)];
+            localStorage.setItem('tasks', JSON.stringify(tasks));
             return {...state, tasks};
 
-        case "ADD_ITEM":
+        case "ADD_TASK":
+            let indProgressTask = tasks.findIndex(item => item.statusTask === 'progress');
+            tasks = [...tasks.slice(0, indProgressTask), ...tasks.slice(indProgressTask + 1), action.payload];
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+            return {...state, tasks};
 
-            const {taskId,taskName, timeStart, timeEnd, timeSpend} = action;
-            const addTask = [...tasks, {taskId,taskName, timeStart, timeEnd, timeSpend}];
-            tasks = [...addTask];
+        case "ADD_PROGRESS_TASK":
 
+            tasks = [...tasks, action.payload];
+            localStorage.setItem('tasks', JSON.stringify(tasks));
             return {...state, tasks};
 
         case "SHOW_MODAL":
-
             statusModal = !statusModal;
-
             return {...state, statusModal};
 
         default:
