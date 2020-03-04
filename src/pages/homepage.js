@@ -4,7 +4,7 @@ import Table from '../components/table'
 
 const homePage = () => {
     return (
-        <div> <Table /></div>
+        <div><Table/></div>
     )
 }
 
