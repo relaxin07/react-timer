@@ -1,8 +1,8 @@
 import React from 'react';
 import './timer.css';
+
 import Button from "@material-ui/core/Button";
 import {makeStyles} from '@material-ui/core/styles';
-
 
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
@@ -11,19 +11,47 @@ import * as actions from "../../actions/actions";
 import Modal from '../modal';
 
 class Timer extends React.Component {
-    constructor() {
-        super();
-        this.timerId = null;
-        this.timeStart = null;
 
-        this.state = {
-            hidden: true,
-            sec: '00',
-            min: '00',
-            h: '00',
-            taskText: '',
-            modalStatus: false,
-            taskId : 1 ,
+    timerId = null;
+    timeStart = null;
+    state = {
+        flag: false,
+        hidden: true,
+        sec: '00',
+        min: '00',
+        h: '00',
+        taskText: '',
+        taskId: 1,
+    }
+
+    componentDidMount() {
+        const {tasks} = this.props;
+        let result = tasks.some(item => item.statusTask === 'progress');
+        if (result) {
+            let openSiteTime = new Date();
+            let taskProgress = tasks.filter(item => item.statusTask === 'progress');
+            const {timeStart} = taskProgress[0];
+            let timeSpend = this.timeSpend(new Date(timeStart), openSiteTime);
+            let timeSpendSplit = timeSpend.split(':');
+            this.setState(() => ({
+                h: timeSpendSplit[0],
+                min: timeSpendSplit[1],
+                sec: timeSpendSplit[2],
+                hidden: false,
+                flag: true,
+            }));
+            this.timeStart = new Date(timeStart);
+        }
+
+    }
+
+    componentDidUpdate() {
+        const {flag} = this.state;
+        if (flag) {
+            this.setState(() => ({
+                flag: false,
+            }))
+            this.startTimer();
         }
     }
 
@@ -35,17 +63,30 @@ class Timer extends React.Component {
         }
     );
 
-    displayNone = () => {
+    changeShowBtn = () => {
         const {hidden} = this.state;
         this.setState({hidden: !hidden});
     };
 
-    onTimer = () => {
-        let {sec, min, h} = this.state;
-
+    onTimerWrap = () => {
+        const {addProgressTask} = this.props;
+        let {sec, min, h, taskId, flag} = this.state;
         this.timeStart = new Date();
-        this.timerId = setInterval(() => {
+        const payload = {
+            taskId: taskId, timeStart: this.timeStart, statusTask: 'progress'
+        };
 
+        addProgressTask(payload);
+        this.setState(() => ({
+            taskId: taskId + 1,
+        }));
+        this.startTimer();
+
+    }
+
+    startTimer = () => {
+        let {sec, min, h, taskId, flag} = this.state;
+        this.timerId = setInterval(() => {
             sec = parseInt(sec) + 1;
             min = parseInt(min);
             h = parseInt(h);
@@ -62,29 +103,29 @@ class Timer extends React.Component {
             }
             min = min < 10 ? '0' + min : min;
             h = h < 10 ? '0' + h : h;
-
             this.setState(() => ({
                 sec,
                 min,
                 h,
             }))
-        }, 1000);
 
+        }, 1000);
     }
 
-    /* timeSpend = (timeStart , timeEnd) =>{
-         let seconds = (timeEnd - timeStart)/ 1000 ^ 0 ;
-         let h = seconds / 3600 ^ 0;
-         let m = (seconds-h*3600)/60 ^ 0 ;
-         let s = (seconds-h*3600) % 60 ;
-         if (h<10) h = "0" + h;
-         if (m<10) m = "0" + m;
-         if (s<10) s = "0" + s;
-         return (`${h}: ${m}: ${s}`);
-     }*/
+    timeSpend = (timeStart, timeEnd) => {
+
+        let seconds = (timeEnd - timeStart) / 1000 ^ 0;
+        let h = seconds / 3600 ^ 0;
+        let m = (seconds - h * 3600) / 60 ^ 0;
+        let s = (seconds - h * 3600) % 60;
+        if (h < 10) h = "0" + h;
+        if (m < 10) m = "0" + m;
+        if (s < 10) s = "0" + s;
+        return (`${h}: ${m}: ${s}`);
+    }
 
     stopTimer = (event) => {
-        const {sec, min, h, taskText,taskId} = this.state;
+        const {sec, min, h, taskText, taskId} = this.state;
         const {addItem, showModal} = this.props;
 
         if (taskText.length === 0) {
@@ -93,49 +134,50 @@ class Timer extends React.Component {
             showModal();
             return false;
         }
-
         clearTimeout(this.timerId);
-
         let timeEnd = new Date();
-
-        addItem(taskId,taskText, this.timeStart.toLocaleTimeString(), timeEnd.toLocaleTimeString(), `${h}:${min}:${sec}`);
+        //`${h}:${min}:${sec}`
+        const payload = {
+            taskId: taskId,
+            taskName: taskText,
+            timeStart: this.timeStart.toLocaleTimeString(),
+            timeEnd: timeEnd.toLocaleTimeString(),
+            timeSpend: this.timeSpend(this.timeStart, timeEnd),
+        }
+        addItem(payload);
 
         this.setState(() => ({
             min: '00',
             sec: '00',
             h: '00',
             taskText: '',
-            modalStatus: false,
-            taskId: taskId +1 ,
-
+            taskId: taskId + 1,
+            flag: false,
         }))
+
     };
 
-    onChange(event) {
+    onChangeInput(event) {
         this.setState({
             taskText: event.target.value,
         })
     }
 
     render() {
-
         const classes = this.useStyles();
         let {min, sec, h, hidden, taskText} = this.state;
         let {statusModal, showModal} = this.props;
 
         const modal = statusModal ? <Modal showModal={showModal}/> : null;
-
-
         const buttonChange = hidden ?
-            <Button className={classes.timerBtn} variant="contained" onClick={this.onTimer}> Start </Button> :
+            <Button className={classes.timerBtn} variant="contained" onClick={this.onTimerWrap}> Start </Button> :
             <Button className={classes.timerBtn} variant="contained"
                     onClick={(event) => this.stopTimer(event)}> Stop </Button>;
         return (
             <div className='wrap-top-block'>
                 {modal}
-
                 <input type="text" className="task-input-name" value={taskText} onChange={(event) => {
-                    this.onChange(event)
+                    this.onChangeInput(event)
                 }} placeholder="Name of your task"/>
 
                 <div className="b-timer">
@@ -144,24 +186,27 @@ class Timer extends React.Component {
                     </div>
                 </div>
 
-                <span onClick={this.displayNone}>{buttonChange}</span>
+                <span onClick={this.changeShowBtn}>{buttonChange}</span>
 
             </div>
         )
     }
 }
 
-const mapStateToProps = ({statusModal}) => {
+const mapStateToProps = ({statusModal, tasks}) => {
     return {
-        statusModal
+        statusModal,
+        tasks,
     }
 };
 
 const mapDispatchToProps = (dispatch) => {
-    const {addItem, showModal} = bindActionCreators(actions, dispatch);
+    const {addItem, showModal, addProgressTask} = bindActionCreators(actions, dispatch);
     return {
         addItem,
         showModal,
+        addProgressTask,
+
     }
 };
 
