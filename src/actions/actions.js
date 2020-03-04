@@ -1,25 +1,15 @@
 
-const worker = () => {
-    return {
-    type : 'THIS_WORK',
-    }
-};
-
 const deleteItem = ( payload ) =>{
     return{
-        type: 'DELETE_ITEM',
+        type: 'DELETE_TASK',
         payload
     }
 };
 
-const addItem = (taskId,taskName ,timeStart , timeEnd , timeSpend) =>{
+const addItem = (payload) =>{
     return {
-        type:"ADD_ITEM",
-        taskId,
-        taskName,
-        timeStart,
-        timeEnd,
-        timeSpend,
+        type:"ADD_TASK",
+       payload,
 
     }
 };
@@ -44,11 +34,18 @@ const generateTasks = (payload) =>{
     }
 }
 
+const addProgressTask = (payload) =>{
+    return {
+        type:'ADD_PROGRESS_TASK',
+        payload
+    }
+}
+
 export {
-    worker ,
     deleteItem,
     addItem,
     showModal,
     getTask,
     generateTasks,
+    addProgressTask
 };
