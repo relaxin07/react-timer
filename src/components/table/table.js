@@ -56,9 +56,10 @@ const MyTables = ({tasks, deleteItem, getTask}) => {
                     </TableRow>
                 </TableHead>
                 <TableBody className={classes.tbody}>
-                    {tasks.map((item, i) => (
+                    {tasks.filter((item =>  item.statusTask !==  'progress' ))
+                        .map((item, i) => (
                         <TableRow key={i}>
-                            <TableCell className={classes.td} align="left">{item.taskId}</TableCell>
+                            <TableCell className={classes.td} align="left">{i + 1}</TableCell>
                             <TableCell className={classes.td} component="th" scope="row">
                                 {item.taskName}
                             </TableCell>
@@ -66,8 +67,8 @@ const MyTables = ({tasks, deleteItem, getTask}) => {
                             <TableCell className={classes.td} align="left">{item.timeEnd}</TableCell>
                             <TableCell className={classes.td} align="left">{item.timeSpend}</TableCell>
                             <TableCell className={classes.td} align="left">
-                                <Link to={`/tasks/${item.taskId}`}>
-                                    <Button className={classes.button} variant="contained"
+                                <Link  to={`/tasks/${item.taskId}`}>
+                                    <Button  className={classes.button} variant="contained"
                                             onClick={() => getTask(item.taskName)}> info </Button>
                                 </Link>
                             </TableCell>
