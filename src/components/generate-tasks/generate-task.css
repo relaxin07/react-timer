@@ -1,0 +1,12 @@
+.generate-btn{
+    font-size: 17px;
+    display: inline-block;
+    border:none;
+    background: #00BCD5;
+    padding:10px 15px;
+    border-radius: 5px;
+    color:#fff;
+    cursor: pointer;
+    margin: 15px 0;
+
+}

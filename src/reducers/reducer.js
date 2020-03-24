@@ -1,61 +1,105 @@
-const getTasks = JSON.parse(localStorage.getItem('tasks'));
+import { createSlice } from '@reduxjs/toolkit';
+import Service from '../service/service';
 
-const initialState = {
-    tasks: getTasks === null ? [] : getTasks,
-    statusModal: false,
-    taskItem: {},
+const service = new Service();
+const getTasks = service.getTasks();
+
+
+let idTask = 0;
+
+const tasksSlice = createSlice({
+    name: 'tasks',
+    initialState: {
+      tasks: getTasks,
+      statusModal: false,
+      taskItem: {},
+    },
+    reducers: {
+      addItem: {
+        reducer: (state, action) => {
+          state.tasks = state.tasks.filter((item) => {
+            return item.statusTask !== 'progress';
+          });
+          state.tasks.push(action.payload);
+        },
+        prepare(info) {
+          return { payload: { id: idTask++, ...info } };
+        },
+      },
+
+      deleteItem: (state, action) => {
+        let ind = state.tasks.findIndex((item) => {
+          return item.taskName === action.payload;
+        });
+        if (ind > -1) {
+          state.tasks.splice(ind, 1);
+        }
+      },
+
+      showModal: (state, action) => {
+        state.statusModal = !state.statusModal;
+      },
+
+      generateTasks: (state, action) => {
+        state.tasks = action.payload;
+      },
+
+      getTask: (state, action) => {
+        const filterTask = state.tasks.filter((item) => {
+          return item.taskName === action.payload;
+        });
+        state.taskItem = filterTask[0];
+      },
+    },
+  },
+);
+
+
+function deleteItemThunk(payload) {
+  return (dispatch) => {
+    service.deleteItem(payload);
+    dispatch(deleteItem(payload));
+  };
+}
+
+function generateTaskThunk(payload) {
+  return (dispatch) => {
+    service.generateTask(payload);
+    dispatch(generateTasks(payload));
+  };
+}
+
+function addItemThunk(payload) {
+  return (dispatch) => {
+    service.addItem(payload);
+    dispatch(addItem(payload));
+  };
+}
+
+function addProgressTaskThunk(payload) {
+  return (dispatch) => {
+    service.addProgressTask(payload);
+    dispatch(addItem(payload));
+  };
+}
+
+
+const { addItem, deleteItem, showModal, generateTasks, getTask } = tasksSlice.actions;
+
+const actions = {
+  addItem,
+  deleteItem,
+  showModal,
+  generateTasks,
+  getTask,
+  deleteItemThunk,
+  generateTaskThunk,
+  addProgressTaskThunk,
+  addItemThunk,
 };
 
-const reducer = (state = initialState, action) => {
-    let {tasks, statusModal, taskItem} = state;
-
-    switch (action.type) {
-
-        case "GENERATE_TASKS":
-            localStorage.setItem('tasks', JSON.stringify(action.payload));
-            tasks = action.payload;
-            return {...state, tasks};
-
-        case "GET_TASK" :
-            const filterTask = tasks.filter((item) => {
-                return item.taskName === action.payload;
-            });
-
-            taskItem = filterTask[0];
-
-            return {...state, taskItem};
-
-
-        case "DELETE_TASK":
-            const itemName = action.payload;
-            const ind = tasks.findIndex((item) => {
-                return item.taskName === itemName;
-            });
-
-            tasks = [...tasks.slice(0, ind), ...tasks.slice(ind + 1)];
-            localStorage.setItem('tasks', JSON.stringify(tasks));
-            return {...state, tasks};
-
-        case "ADD_TASK":
-            let indProgressTask = tasks.findIndex(item => item.statusTask === 'progress');
-            tasks = [...tasks.slice(0, indProgressTask), ...tasks.slice(indProgressTask + 1), action.payload];
-            localStorage.setItem('tasks', JSON.stringify(tasks));
-            return {...state, tasks};
-
-        case "ADD_PROGRESS_TASK":
-
-            tasks = [...tasks, action.payload];
-            localStorage.setItem('tasks', JSON.stringify(tasks));
-            return {...state, tasks};
-
-        case "SHOW_MODAL":
-            statusModal = !statusModal;
-            return {...state, statusModal};
-
-        default:
-            return state;
-    }
-
+export {
+  actions,
 };
 
-export default reducer;
+export default tasksSlice.reducer;

@@ -1,0 +1,12 @@
+.back-home-link{
+    text-decoration: none;
+    font-size: 17px;
+    display: inline-block;
+    border:1px solid #00BCD5;
+    background: #fff;
+    padding: 10px 15px;
+    border-radius: 5px;
+    color: #00BCD5;
+    cursor: pointer;
+    margin: 15px 0;
+}

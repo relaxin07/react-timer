@@ -1,7 +1,10 @@
-import {createStore} from "redux";
+import { configureStore } from '@reduxjs/toolkit';
+import tasksSlice from './reducers/reducer';
+import thunk from 'redux-thunk';
 
-import reducer from "./reducers/reducer";
+const store = configureStore({
+  reducer: tasksSlice,
+  middleware: [thunk],
+});
 
-const store  = createStore(reducer);
-
-export default  store;
+export default store;
