@@ -1,58 +1,46 @@
 import React from 'react';
 import './timer.css';
 
+import CircularProgress from '@material-ui/core/CircularProgress';
 import Button from '@material-ui/core/Button';
 import { makeStyles } from '@material-ui/core/styles';
 
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-
-import { actions } from '../../reducers/reducer';
-
+import { actions } from '../../store/modules/tasks/index';
 import Modal from '../modal';
 
 class Timer extends React.Component {
-
+  startTime = null;
   timerId = null;
-  timeStart = null;
   state = {
-    flag: false,
-    hidden: true,
-    sec: '00',
-    min: '00',
-    h: '00',
     taskText: '',
-
+    flag: false,
+    viewBtn: true,
+    time: 0,
+    loading: true,
   };
 
   componentDidMount() {
-    const { tasks } = this.props;
-    let result = tasks.some(item => item.statusTask === 'progress');
-    if (result) {
-      let openSiteTime = new Date();
-      let taskProgress = tasks.filter(item => item.statusTask === 'progress');
-      const { timeStart } = taskProgress[0];
-      let timeSpend = this.timeSpend(new Date(timeStart), openSiteTime);
-      let timeSpendSplit = timeSpend.split(':');
-      this.setState(() => ({
-        h: timeSpendSplit[0],
-        min: timeSpendSplit[1],
-        sec: timeSpendSplit[2],
-        hidden: false,
-        flag: true,
-      }));
-      this.timeStart = new Date(timeStart);
-    }
-
+    const { getTime } = this.props;
+    getTime();
   }
 
   componentDidUpdate() {
-    const { flag } = this.state;
-    if (flag) {
+    const { resumeTimer } = this.props;
+    if (this.state.flag === false && resumeTimer.resume === true && resumeTimer.status === true) {
       this.setState(() => ({
-        flag: false,
+        flag: true,
       }));
-      this.startTimer();
+      this.startTimer(true);
+    }
+
+    if (this.state.flag === false && resumeTimer.resume === false && resumeTimer.status === true) {
+      this.setState(() => ({
+        flag: true,
+        loading: false,
+      }));
+
     }
   }
 
@@ -64,70 +52,41 @@ class Timer extends React.Component {
     },
   );
 
-  changeShowBtn = () => {
-    const { hidden } = this.state;
-    this.setState({ hidden: !hidden });
-  };
-
   onTimerWrap = () => {
-    const { addProgressTaskThunk } = this.props;
-    let { taskId } = this.state;
-    this.timeStart = new Date();
-    const payload = {
-      taskId: taskId, timeStart: this.timeStart.toString(), statusTask: 'progress',
-    };
-
-    addProgressTaskThunk(payload);
-    this.setState(() => ({
-      taskId: taskId + 1,
-    }));
+    const { saveTimeOnTimer } = this.props;
+    saveTimeOnTimer();
     this.startTimer();
-
   };
 
-  startTimer = () => {
-    let { sec, min, h } = this.state;
-    this.timerId = setInterval(() => {
-      sec = parseInt(sec) + 1;
-      min = parseInt(min);
-      h = parseInt(h);
-
-      if (sec === 60) {
-        sec = 0;
-        min++;
-      }
-      sec = sec < 10 ? '0' + sec : sec;
-
-      if (min === 60) {
-        min = 0;
-        h++;
-      }
-      min = min < 10 ? '0' + min : min;
-      h = h < 10 ? '0' + h : h;
-      this.setState(() => ({
-        sec,
-        min,
-        h,
-      }));
-
-    }, 1000);
-  };
-
-  timeSpend = (timeStart, timeEnd) => {
-    let seconds = (timeEnd - timeStart) / 1000 ^ 0;
+  convertorTime(time) {
+    let seconds = Math.round(time / 1000);
     let h = seconds / 3600 ^ 0;
     let m = (seconds - h * 3600) / 60 ^ 0;
     let s = (seconds - h * 3600) % 60;
     if (h < 10) h = '0' + h;
     if (m < 10) m = '0' + m;
     if (s < 10) s = '0' + s;
-    return (`${h}:${m}:${s}`);
+    return `${h}:${m}:${s}`;
+  }
+
+  startTimer = (isResumeTime) => {
+    const { resumeTimer } = this.props;
+    this.startTime = isResumeTime ? new Date(resumeTimer.time) : new Date();
+    this.timerId = setInterval(() => {
+      this.setState((state) => ({
+        time: new Date() - this.startTime,
+        loading: false,
+      }));
+    }, 1000);
+    this.setState(() => ({
+      viewBtn: false,
+
+    }));
   };
 
   stopTimer = (event) => {
-    const { taskText } = this.state;
     const { addItemThunk, showModal } = this.props;
-
+    const { taskText } = this.state;
     if (taskText.length === 0) {
       event.stopPropagation();
       event.preventDefault();
@@ -136,24 +95,21 @@ class Timer extends React.Component {
     }
 
     clearTimeout(this.timerId);
+    this.setState(() => ({
+      time: 0,
+      viewBtn: true,
+      taskText: '',
+      timerResume: false,
+    }));
     let timeEnd = new Date();
-    //`${h}:${min}:${sec}`
+
     const payload = {
-      // taskId: taskId,
       taskName: taskText,
-      timeStart: this.timeStart.toLocaleTimeString(),
+      timeStart: this.startTime.toLocaleTimeString(),
       timeEnd: timeEnd.toLocaleTimeString(),
-      timeSpend: this.timeSpend(this.timeStart, timeEnd),
+      timeSpend: this.convertorTime(timeEnd - this.startTime),
     };
     addItemThunk(payload);
-
-    this.setState(() => ({
-      min: '00',
-      sec: '00',
-      h: '00',
-      taskText: '',
-      flag: false,
-    }));
 
   };
 
@@ -164,12 +120,14 @@ class Timer extends React.Component {
   }
 
   render() {
-    const classes = this.useStyles();
-    let { min, sec, h, hidden, taskText } = this.state;
-    let { statusModal, showModal, rel } = this.props;
 
+    const classes = this.useStyles();
+    let { viewBtn, taskText, time, loading } = this.state;
+    let { statusModal, showModal } = this.props;
+
+    let timeResult = this.convertorTime(time);
     const modal = statusModal ? <Modal showModal={showModal}/> : null;
-    const buttonChange = hidden ?
+    const buttonChange = viewBtn ?
       <Button className={classes.timerBtn} variant="contained" onClick={this.onTimerWrap}> Start </Button> :
       <Button className={classes.timerBtn} variant="contained"
               onClick={(event) => this.stopTimer(event)}> Stop </Button>;
@@ -180,13 +138,15 @@ class Timer extends React.Component {
           this.onChangeInput(event);
         }} placeholder="Name of your task"/>
 
-        <div className="b-timer" onClick={rel}>
+        <div className="b-timer">
           <div className="time">
-            <span className="time__items">{h}:{min}:{sec}</span>
+            {
+              loading ? <CircularProgress/> : <span className="time__items">{timeResult} </span>
+            }
           </div>
         </div>
 
-        <span onClick={this.changeShowBtn}>{buttonChange}</span>
+        <span>{buttonChange}</span>
 
       </div>
     );
@@ -194,21 +154,20 @@ class Timer extends React.Component {
 }
 
 const mapStateToProps = (state) => {
-  const { tasks, statusModal } = state;
-
+  const { statusModal, resumeTimer } = state;
   return {
     statusModal,
-    tasks,
+    resumeTimer,
   };
 };
 
 const mapDispatchToProps = (dispatch) => {
-  const { addProgressTaskThunk, addItemThunk, showModal } = bindActionCreators(actions, dispatch);
+  const { saveTimeOnTimer, addItemThunk, showModal, getTime } = bindActionCreators(actions, dispatch);
   return {
-    addProgressTaskThunk,
+    saveTimeOnTimer,
     addItemThunk,
     showModal,
-
+    getTime,
   };
 };
 
