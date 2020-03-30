@@ -9,29 +9,29 @@ import cloneDeep from 'lodash/cloneDeep';
 class Recharts extends Component {
 
   state = {
-    data: [],
+    initialData: [],
   };
 
   componentDidMount() {
-    const { data } = this.state;
-    this.changeData(data);
+    const { initialData } = this.state;
+    this.changeData(initialData);
     this.convertData();
   }
 
   componentDidUpdate(prevProps, prevState) {
     if (this.props !== prevProps) {
-      const { data } = this.state;
-      this.changeData(data);
+      const { initialData } = this.state;
+      this.changeData(initialData);
       this.convertData();
     }
   }
 
-  changeData = (data) => {
+  changeData = (initialData) => {
     for (let i = 0; i < 24; i++) {
-      data[i] = { id: i, min: 0 };
+      initialData[i] = { id: i, min: 0 };
     }
     this.setState(() => ({
-      data,
+      initialData,
     }));
   };
 
@@ -40,30 +40,24 @@ class Recharts extends Component {
   };
 
   convertData = () => {
-    let { data } = this.state;
-    let { tasks } = this.props;
-    let tasksFilters = tasks.filter(item => item.statusTask !== 'progress');
-    let tasksFilter = cloneDeep(tasksFilters);
+    let { initialData } = this.state;
+    let { data } = this.props;
 
-    for (let i = 0; i < tasksFilter.length; i++) {
-      if (tasksFilter[i].timeStart === undefined) {
-        tasksFilter[i].timeStart = '00:00:00';
-      }
 
-      let dataTimeSplit = tasksFilter[i].timeStart.split(':');
-
+    for (let i = 0; i < data.length; i++) {
+      let dataTimeSplit = data[i].timeStart.split(':');
       let idDataStartTime = parseInt(dataTimeSplit[0]);
 
-
-      const timeSpendOnTask = tasks[i].timeSpend.split(':');
+      const timeSpendOnTask = data[i].timeSpend.split(':');
       let timeSpendOnMinutes = this.convertTimeInMinutes(...timeSpendOnTask);
+      let minutes = 60;
 
       while (timeSpendOnMinutes > 0) {
-        let amountForFullMinutes = 60 - data[idDataStartTime].min;
-        data[idDataStartTime].min = data[idDataStartTime].min + timeSpendOnMinutes;
+        let amountForFullMinutes = minutes - initialData[idDataStartTime].min;
+        initialData[idDataStartTime].min = initialData[idDataStartTime].min + timeSpendOnMinutes;
 
-        if (data[idDataStartTime].min > 60) {
-          data[idDataStartTime].min = 60;
+        if (initialData[idDataStartTime].min > 60) {
+          initialData[idDataStartTime].min = 60;
           idDataStartTime++;
           timeSpendOnMinutes = timeSpendOnMinutes - amountForFullMinutes;
         } else {
@@ -71,17 +65,15 @@ class Recharts extends Component {
         }
       }
       this.setState(() => ({
-        data,
+        initialData,
       }));
-      tasksFilter[i].timeStart = undefined;
     }
 
   };
 
   render() {
-    const { data } = this.state;
-    let newData = cloneDeep(data);
-
+    const { initialData } = this.state;
+    let newData = cloneDeep(initialData);
     return (
       <div style={{ maxWidth: '100%', height: 300, padding: '0 20px 0 0' }}>
         <ResponsiveContainer>
@@ -105,8 +97,8 @@ class Recharts extends Component {
 }
 
 const mapStateToProps = (state) => {
-  const { tasks } = state;
-  return { tasks };
+  const { data } = state;
+  return { data };
 };
 
 
