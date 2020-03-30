@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
@@ -12,9 +12,8 @@ import { Link } from 'react-router-dom';
 
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { actions } from '../../reducers/reducer';
+import { actions } from '../../store/modules/tasks/index';
 import GenerateTasks from '../generate-tasks/generate-tasks';
-
 
 const useStyles = makeStyles({
   table: {
@@ -39,9 +38,13 @@ const useStyles = makeStyles({
   },
 });
 
-const MyTables = ({ tasks, deteleItemThunks, getTask }) => {
-  const classes = useStyles();
+const MyTables = ({ data, deleteItem, getTask, getTasks }) => {
 
+  useEffect(() => {
+    getTasks();
+  }, []);
+
+  const classes = useStyles();
   return (
     <>
       <TableContainer align="center">
@@ -58,28 +61,27 @@ const MyTables = ({ tasks, deteleItemThunks, getTask }) => {
             </TableRow>
           </TableHead>
           <TableBody className={classes.tbody}>
-            {tasks.filter((item => item.statusTask !== 'progress'))
-              .map((item, i) => (
-                <TableRow key={i}>
-                  <TableCell className={classes.td} align="left">{i + 1}</TableCell>
-                  <TableCell className={classes.td} component="th" scope="row">
-                    {item.taskName}
-                  </TableCell>
-                  <TableCell className={classes.td} align="left">{item.timeStart}</TableCell>
-                  <TableCell className={classes.td} align="left">{item.timeEnd}</TableCell>
-                  <TableCell className={classes.td} align="left">{item.timeSpend}</TableCell>
-                  <TableCell className={classes.td} align="left">
-                    <Link to={`/tasks/${item.taskId}`}>
-                      <Button className={classes.button} variant="contained"
-                              onClick={() => getTask(item.taskName)}> info </Button>
-                    </Link>
-                  </TableCell>
-                  <TableCell className={classes.td} align="left">
-                    <Button className={classes.button}
-                            variant="contained"
-                            onClick={() => deteleItemThunks(item.taskName)}> delete </Button></TableCell>
-                </TableRow>
-              ))}
+            {data.map((item, i) => (
+              <TableRow key={i}>
+                <TableCell className={classes.td} align="left">{i + 1}</TableCell>
+                <TableCell className={classes.td} component="th" scope="row">
+                  {item.taskName}
+                </TableCell>
+                <TableCell className={classes.td} align="left">{item.timeStart}</TableCell>
+                <TableCell className={classes.td} align="left">{item.timeEnd}</TableCell>
+                <TableCell className={classes.td} align="left">{item.timeSpend}</TableCell>
+                <TableCell className={classes.td} align="left">
+                  <Link to={`/tasks/${item.id}`}>
+                    <Button className={classes.button} variant="contained"
+                            onClick={() => getTask(item.taskName)}> info </Button>
+                  </Link>
+                </TableCell>
+                <TableCell className={classes.td} align="left">
+                  <Button className={classes.button}
+                          variant="contained"
+                          onClick={() => deleteItem(item.taskName)}> delete </Button></TableCell>
+              </TableRow>
+            ))}
           </TableBody>
         </Table>
       </TableContainer>
@@ -90,17 +92,17 @@ const MyTables = ({ tasks, deteleItemThunks, getTask }) => {
 };
 
 const mapState = (state) => {
-  const { tasks } = state;
-  return { tasks };
+  const { data } = state;
+  return { data };
 };
 
 const mapDispatchToProps = (dispatch) => {
-  const { addItem, getTask } = bindActionCreators(actions, dispatch);
-  const { deleteItemThunk } = actions;
+  const { addItem, getTask, getTasks, deleteItem } = bindActionCreators(actions, dispatch);
   return {
     addItem,
-    deteleItemThunks: (payload) => dispatch(deleteItemThunk(payload)),
+    deleteItem,
     getTask,
+    getTasks,
   };
 };
 
